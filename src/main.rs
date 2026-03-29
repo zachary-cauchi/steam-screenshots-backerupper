@@ -1,5 +1,6 @@
 pub mod app;
 pub mod result;
+pub mod steam;
 
 use clap::Parser;
 use tracing::debug;
