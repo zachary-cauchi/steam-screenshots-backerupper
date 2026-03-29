@@ -21,7 +21,7 @@ impl App {
         for (user_dir, screenshots_dir) in screenshots_dirs {
             info!(
                 "User dir '{}' has {} directories: {:?}",
-                user_dir.display(),
+                user_dir.root().display(),
                 screenshots_dir.len(),
                 screenshots_dir
             )
