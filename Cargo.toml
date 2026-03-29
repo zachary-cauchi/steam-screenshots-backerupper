@@ -1,0 +1,10 @@
+[package]
+authors = ["Zachary Cauchi <zach.cauchi@hotmail.com>"]
+edition = "2021"
+# If you change the name here, you must also do it in flake.nix (and run `cargo generate-lockfile` afterwards)
+name = "steam-screenshots-backerupper"
+description = "Back up my Steam recordings and screenshots to a NAS"
+version = "0.1.0"
+
+[dependencies]
+clap = { version = "4.3.14", features = ["derive"] }
