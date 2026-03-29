@@ -1,25 +1,30 @@
+pub mod app;
+pub mod result;
+
 use clap::Parser;
+use tracing::debug;
+
+use crate::app::App;
 
 #[derive(Parser, Debug)]
 #[clap(author = "Zachary Cauchi", version, about)]
 /// Application configuration
 struct Args {
-    /// whether to be verbose
-    #[arg(short = 'v')]
-    verbose: bool,
-
-    /// an optional name to greet
-    #[arg()]
-    name: Option<String>,
+    /// Maximum log level. Available options:
+    /// ERROR, WARN, INFO, DEBUG, TRACE.
+    #[arg(short = 'l', default_value_t = tracing::Level::INFO)]
+    level: tracing::Level,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
-    if args.verbose {
-        println!("DEBUG {args:?}");
-    }
-    println!(
-        "Hello {} (from steam-screenshots-backerupper)!",
-        args.name.unwrap_or("world".to_string())
-    );
+
+    tracing_subscriber::fmt().with_max_level(args.level).init();
+
+    debug!("Logging initialized");
+
+    let app = App {};
+
+    app.run().await.unwrap();
 }
