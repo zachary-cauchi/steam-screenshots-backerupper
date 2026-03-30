@@ -1,60 +1,14 @@
+pub mod user_data;
+
 use std::path::{Path, PathBuf};
 
 use tracing::{debug, error, warn};
 use ureq::Agent;
 
-use crate::result::{CrateError, CrateResult};
-
-#[derive(Debug)]
-pub struct UserData {
-    user_id: u64,
-    path: PathBuf,
-}
-
-impl UserData {
-    fn new(path: PathBuf) -> CrateResult<Self> {
-        let user_id = path
-            .file_name()
-            .ok_or_else(|| CrateError::FilePathing("path ends in .."))?
-            .to_str()
-            .ok_or_else(|| CrateError::FilePathing("Invalid UTF-8 in path"))?
-            .parse::<u64>()?;
-
-        Ok(Self { path, user_id })
-    }
-
-    pub fn root(&self) -> &Path {
-        &self.path
-    }
-
-    fn screenshots_dir(&self) -> PathBuf {
-        self.path.join("760/remote")
-    }
-
-    /// Get the per-game subdirs of the user's screenshots directory.
-    fn iter_screenshots_dir(&self) -> CrateResult<Vec<PathBuf>> {
-        let game_dirs = self
-            .screenshots_dir()
-            .read_dir()
-            .inspect_err(|e| {
-                error!(
-                    "Could not read screenshots dir for user {}. Error: {e}",
-                    self.user_id
-                )
-            })?
-            .filter_map(|result| match result {
-                Ok(d) if d.file_name().to_string_lossy().parse::<u64>().is_ok() => Some(d.path()),
-                Ok(_) => None,
-                Err(e) => {
-                    warn!("Skipping a game. Error: {e}");
-                    return None;
-                }
-            })
-            .collect::<Vec<_>>();
-
-        Ok(game_dirs)
-    }
-}
+use crate::{
+    result::{CrateError, CrateResult},
+    steam::user_data::UserData,
+};
 
 #[derive(Debug)]
 pub struct Steam {
@@ -109,20 +63,21 @@ impl Steam {
         &self.root
     }
 
-    pub fn get_game_screenshot_dirs(&self) -> CrateResult<Vec<(UserData, Vec<PathBuf>)>> {
+    pub fn get_game_screenshot_dirs(&self) -> CrateResult<Vec<PathBuf>> {
         let screenshots_dirs = self
             .get_users()?
             .into_iter()
-            .map(|user| match user.iter_screenshots_dir() {
-                Ok(dirs) => (user, dirs),
-                Err(e) => {
-                    warn!(
-                        "Failed to collect screenshot dirs for user '{}'. Error: {e}",
-                        user.user_id
-                    );
-                    (user, vec![])
-                }
+            .filter_map(|user| {
+                user.iter_screenshots_dir()
+                    .inspect_err(|e| {
+                        warn!(
+                            "Failed to collect screenshot dirs for user '{}'. Error: {e}",
+                            user.user_id
+                        )
+                    })
+                    .ok()
             })
+            .flatten()
             .collect::<Vec<_>>();
 
         Ok(screenshots_dirs)
