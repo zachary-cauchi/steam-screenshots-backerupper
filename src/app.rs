@@ -14,7 +14,7 @@ pub struct App {}
 
 impl App {
     /// Main runtime.
-    pub async fn run(&self) -> CrateResult<()> {
+    pub fn run(&self) -> CrateResult<()> {
         info!("App started");
 
         info!("Getting Steam directory.");

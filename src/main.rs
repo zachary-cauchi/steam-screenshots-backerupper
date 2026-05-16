@@ -17,8 +17,7 @@ struct Args {
     level: tracing::Level,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let args = Args::parse();
 
     tracing_subscriber::fmt().with_max_level(args.level).init();
@@ -27,5 +26,5 @@ async fn main() {
 
     let app = App {};
 
-    app.run().await.unwrap();
+    app.run().unwrap();
 }
