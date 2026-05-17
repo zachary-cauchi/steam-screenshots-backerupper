@@ -6,19 +6,20 @@
     systems.url = "github:nix-systems/default";
     rust-flake.url = "github:juspay/rust-flake";
     rust-flake.inputs.nixpkgs.follows = "nixpkgs";
-
+    copyparty = {
+      url = "github:9001/copyparty";
+      flake = false;
+    };
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.flake = false;
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
 
       # See ./nix/modules/*.nix for the modules that are imported here.
-      imports = with builtins;
-        map
-          (fn: ./nix/modules/${fn})
-          (attrNames (readDir ./nix/modules));
+      imports = with builtins; map (fn: ./nix/modules/${fn}) (attrNames (readDir ./nix/modules));
     };
 }
