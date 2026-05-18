@@ -47,7 +47,7 @@ impl U2c {
 
         let buf_reader = BufReader::new(spawned.stdout.take().unwrap());
         for line in buf_reader.lines() {
-            info!(
+            debug!(
                 "u2c out: {}",
                 line.as_ref().map_or("LINE_ERR", String::as_str)
             );

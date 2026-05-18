@@ -1,3 +1,4 @@
+pub mod name_provider;
 pub mod user_data;
 
 use std::path::{Path, PathBuf};
