@@ -6,7 +6,7 @@ use std::{
 };
 
 use serde_json::Value;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 use ureq::http::{uri::Scheme, StatusCode, Uri};
 
 use crate::{
@@ -65,19 +65,19 @@ impl App {
     }
 
     /// Upload all files in the given dir to the server.
+    /// TODO Fix pathing issue where copyparty puts screenshots in 'screenshots' subdir.
     pub fn upload(&self, screenshots_dir: &Path, game_name: &str) -> CrateResult<()> {
         /// The destination, composed of the server URL, base screenshots path, and game name as the final directory.
         /// Since some games can have certain characters invalid for URLs (such as colons), encode the name.
         let destination = format!("{}/{}", self.server_url, urlencoding::encode(game_name));
 
-        let (mut reader, writer) = std::io::pipe()?;
         let mut cmd = Command::new("tool_u2c");
         cmd.arg("-a")
             .arg(&self.pass)
             .arg(destination.to_string())
             .arg(screenshots_dir.join("screenshots"))
-            .stdout(writer.try_clone()?)
-            .stderr(writer);
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
 
         info!(
             "Running cmd '{:?}' with args {:?}",
@@ -87,7 +87,7 @@ impl App {
 
         let mut spawned = cmd.spawn()?;
 
-        let buf_reader = BufReader::new(reader);
+        let buf_reader = BufReader::new(spawned.stdout.take().unwrap());
         for line in buf_reader.lines() {
             info!(
                 "u2c out: {}",
@@ -95,10 +95,10 @@ impl App {
             );
         }
 
-        let status = spawned.wait_with_output()?.status;
+        debug!("stdout finished. Waiting for cmd to completely exit.");
+
+        let status = spawned.wait()?;
         info!("u2c exited with status '{}'", status);
-        // info!("stdout:\n\t{}", String::from_utf8_lossy(&output.stdout));
-        // info!("stderr:\n\t{}", String::from_utf8_lossy(&output.stderr));
 
         Ok(())
     }
