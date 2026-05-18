@@ -3,7 +3,6 @@ pub mod user_data;
 use std::path::{Path, PathBuf};
 
 use tracing::{debug, error, warn};
-use ureq::Agent;
 
 use crate::{
     result::{CrateError, CrateResult},
@@ -13,7 +12,6 @@ use crate::{
 #[derive(Debug)]
 pub struct Steam {
     root: PathBuf,
-    client: Agent,
 }
 
 impl Steam {
@@ -51,12 +49,7 @@ impl Steam {
             )
         })?;
 
-        let client = ureq::agent();
-
-        Ok(Self {
-            root: steam_dir,
-            client,
-        })
+        Ok(Self { root: steam_dir })
     }
 
     pub fn root(&self) -> &Path {

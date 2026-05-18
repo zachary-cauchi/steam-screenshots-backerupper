@@ -1,29 +1,27 @@
-use std::{
-    io::{BufRead, BufReader},
-    path::Path,
-    process::{Command, Stdio},
-    thread::spawn,
-};
-
 use serde_json::Value;
-use tracing::{debug, error, info, warn};
-use ureq::http::{uri::Scheme, StatusCode, Uri};
+use tracing::{error, info, warn};
+use ureq::http::StatusCode;
 
 use crate::{
     result::{CrateError, CrateResult},
     steam::Steam,
-    uploader::Uploader,
+    u2c::U2c,
 };
 
-const JSNLI_GAME_APPID_LIST_URL: &str =
+const _JSNLI_GAME_APPID_LIST_URL: &str =
     "https://github.com/jsnli/steamappidlist/blob/master/data/games_appid.json";
 
 pub struct App {
-    pub server_url: String,
-    pub pass: String,
+    u2c: U2c,
 }
 
 impl App {
+    pub fn new(server_url: impl ToString, password: impl ToString) -> Self {
+        Self {
+            u2c: U2c::new(server_url, password),
+        }
+    }
+
     /// Main runtime.
     pub fn run(&self) -> CrateResult<()> {
         info!("App started");
@@ -55,50 +53,11 @@ impl App {
 
             info!("Game name: {game_name}");
 
-            self.upload(&screenshots_dir, &game_name)?;
+            self.u2c.upload(&screenshots_dir, &game_name)?;
 
             info!("Screenshots for '{game_name}' uploaded.");
             break;
         }
-
-        Ok(())
-    }
-
-    /// Upload all files in the given dir to the server.
-    /// TODO Fix pathing issue where copyparty puts screenshots in 'screenshots' subdir.
-    pub fn upload(&self, screenshots_dir: &Path, game_name: &str) -> CrateResult<()> {
-        /// The destination, composed of the server URL, base screenshots path, and game name as the final directory.
-        /// Since some games can have certain characters invalid for URLs (such as colons), encode the name.
-        let destination = format!("{}/{}", self.server_url, urlencoding::encode(game_name));
-
-        let mut cmd = Command::new("tool_u2c");
-        cmd.arg("-a")
-            .arg(&self.pass)
-            .arg(destination.to_string())
-            .arg(screenshots_dir.join("screenshots"))
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-
-        info!(
-            "Running cmd '{:?}' with args {:?}",
-            cmd.get_program(),
-            cmd.get_args().collect::<Vec<_>>()
-        );
-
-        let mut spawned = cmd.spawn()?;
-
-        let buf_reader = BufReader::new(spawned.stdout.take().unwrap());
-        for line in buf_reader.lines() {
-            info!(
-                "u2c out: {}",
-                line.as_ref().map_or("LINE_ERR", String::as_str)
-            );
-        }
-
-        debug!("stdout finished. Waiting for cmd to completely exit.");
-
-        let status = spawned.wait()?;
-        info!("u2c exited with status '{}'", status);
 
         Ok(())
     }
@@ -128,7 +87,7 @@ impl App {
         let name = match &game_json[game_id]["data"]["name"] {
             Value::String(name) => name.clone(),
             Value::Null => return Err(CrateError::DataNotFound(format!("{game_id}.data.name"))),
-            v => return Err(CrateError::WrongType(("String", "Non-string type"))),
+            _ => return Err(CrateError::WrongType(("String", "Non-string type"))),
         };
 
         Ok(Some(name))

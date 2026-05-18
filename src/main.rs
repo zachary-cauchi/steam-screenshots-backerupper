@@ -1,6 +1,7 @@
 pub mod app;
 pub mod result;
 pub mod steam;
+pub mod u2c;
 
 use clap::Parser;
 use tracing::debug;
@@ -30,10 +31,7 @@ fn main() {
 
     debug!("Logging initialized");
 
-    let app = App {
-        server_url: args.server_url,
-        pass: args.server_password,
-    };
+    let app = App::new(args.server_url, args.server_password);
 
     app.run().unwrap();
 }
