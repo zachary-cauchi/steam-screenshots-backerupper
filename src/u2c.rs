@@ -4,7 +4,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 use crate::result::CrateResult;
 
@@ -33,7 +33,7 @@ impl U2c {
         cmd.arg("-a")
             .arg(&self.pass)
             .arg(destination.to_string())
-            .arg(screenshots_dir.join("screenshots"))
+            .arg(screenshots_dir.join("screenshots/"))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
@@ -45,8 +45,9 @@ impl U2c {
 
         let mut spawned = cmd.spawn()?;
 
-        let buf_reader = BufReader::new(spawned.stdout.take().unwrap());
-        for line in buf_reader.lines() {
+        // First, stream stdout.
+        let buf_reader_out = BufReader::new(spawned.stdout.take().unwrap());
+        for line in buf_reader_out.lines() {
             debug!(
                 "u2c out: {}",
                 line.as_ref().map_or("LINE_ERR", String::as_str)
@@ -56,7 +57,20 @@ impl U2c {
         debug!("stdout finished. Waiting for cmd to completely exit.");
 
         let status = spawned.wait()?;
-        info!("u2c exited with status '{}'", status);
+        debug!("u2c exited with status '{}'", status);
+
+        if !status.success() {
+            warn!("Non-zero exit status.");
+
+            // Next, stream any stderr lines.
+            let buf_reader_err = BufReader::new(spawned.stderr.take().unwrap());
+            for line in buf_reader_err.lines() {
+                debug!(
+                    "u2c err: {}",
+                    line.as_ref().map_or("LINE_ERR", String::as_str)
+                );
+            }
+        }
 
         Ok(())
     }
