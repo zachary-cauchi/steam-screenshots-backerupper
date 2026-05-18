@@ -15,6 +15,12 @@ struct Args {
     /// ERROR, WARN, INFO, DEBUG, TRACE.
     #[arg(short = 'l', default_value_t = tracing::Level::INFO)]
     level: tracing::Level,
+    /// The URL to the copyparty server. Should include the subdir to place screenshots in if applicable.
+    #[arg(short = 'u', long)]
+    server_url: String,
+    /// The password authenticate with the server.
+    #[arg(short = 'p', long)]
+    server_password: String,
 }
 
 fn main() {
@@ -24,7 +30,10 @@ fn main() {
 
     debug!("Logging initialized");
 
-    let app = App {};
+    let app = App {
+        server_url: args.server_url,
+        pass: args.server_password,
+    };
 
     app.run().unwrap();
 }
