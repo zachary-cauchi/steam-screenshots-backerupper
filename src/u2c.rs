@@ -6,7 +6,7 @@ use std::{
 
 use tracing::{debug, info, instrument, warn};
 
-use crate::result::CrateResult;
+use crate::result::{CrateError, CrateResult};
 
 pub struct U2c {
     base_url: String,
@@ -22,7 +22,6 @@ impl U2c {
     }
 
     /// Upload all files in the given dir to the server.
-    /// TODO Fix pathing issue where copyparty puts screenshots in 'screenshots' subdir.
     #[instrument(name = "u2c", skip(self, screenshots_dir), err(level = "WARN"))]
     pub fn upload(&self, screenshots_dir: &Path, game_name: &str) -> CrateResult<()> {
         // The destination, composed of the server URL, base screenshots path, and game name as the final directory.
@@ -59,10 +58,10 @@ impl U2c {
         let status = spawned.wait()?;
         debug!("u2c exited with status '{}'", status);
 
+        // Next, stream any stderr lines if the exit code != 0.
         if !status.success() {
-            warn!("Non-zero exit status.");
+            warn!("Non-zero exit status. Status code: {status:?}");
 
-            // Next, stream any stderr lines.
             let buf_reader_err = BufReader::new(spawned.stderr.take().unwrap());
             for line in buf_reader_err.lines() {
                 debug!(
@@ -70,8 +69,10 @@ impl U2c {
                     line.as_ref().map_or("LINE_ERR", String::as_str)
                 );
             }
-        }
 
-        Ok(())
+            Err(CrateError::general("u2c exited with {status}"))
+        } else {
+            Ok(())
+        }
     }
 }

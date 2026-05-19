@@ -15,6 +15,10 @@ pub enum CrateError {
 }
 
 impl CrateError {
+    pub fn general(msg: impl ToString) -> Self {
+        Self::GeneralError(msg.to_string())
+    }
+
     pub fn dir_not_found(dir: impl ToString) -> Self {
         Self::DirNotFound(dir.to_string())
     }
