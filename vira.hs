@@ -2,7 +2,7 @@
 
 \ctx pipeline ->
   let
-    isMain = ctx.branch == "master"
+    isMain = ctx.branch == "main"
   in
   pipeline
     { build.systems =
