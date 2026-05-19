@@ -31,6 +31,7 @@
         packages = with pkgs; [
           just
           nixd # Nix language server
+          haskell-language-server
           bacon
           self'.packages.tool_u2c
         ];
