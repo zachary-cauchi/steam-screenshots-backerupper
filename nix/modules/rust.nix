@@ -26,9 +26,9 @@
         default = pkgs.symlinkJoin {
           name = "${bin_name}";
           paths = [ self'.packages."${bin_name}" ];
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
           postBuild = ''
-            wrapProgram $out/bin/${bin_name} \
+            wrapProgramBinary $out/bin/${bin_name} \
               --prefix PATH : ${pkgs.lib.makeBinPath [ self'.packages.tool_u2c ]}
           '';
         };
