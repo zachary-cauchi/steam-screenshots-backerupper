@@ -28,7 +28,6 @@
           paths = [ self'.packages."${bin_name}" ];
           nativeBuildInputs = [ pkgs.makeWrapper ];
           postBuild = ''
-            ls -lah $out
             wrapProgram $out/bin/${bin_name} \
               --prefix PATH : ${pkgs.lib.makeBinPath [ self'.packages.tool_u2c ]}
           '';
