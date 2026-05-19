@@ -4,7 +4,7 @@ pub mod steam;
 pub mod u2c;
 
 use clap::Parser;
-use tracing::debug;
+use tracing::{debug, error};
 
 use crate::app::App;
 
@@ -33,5 +33,7 @@ fn main() {
 
     let app = App::new(args.server_url, args.server_password);
 
-    app.run().unwrap();
+    if let Err(e) = app.run() {
+        error!("App error. Exiting. Error: {e}");
+    }
 }
