@@ -48,7 +48,7 @@ impl UserData {
                 Ok(_) => None,
                 Err(e) => {
                     warn!("Skipping a game. Error: {e}");
-                    return None;
+                    None
                 }
             });
 

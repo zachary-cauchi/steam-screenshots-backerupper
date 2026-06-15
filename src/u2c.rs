@@ -31,7 +31,7 @@ impl U2c {
         let mut cmd = Command::new("tool_u2c");
         cmd.arg("-a")
             .arg(&self.pass)
-            .arg(destination.to_string())
+            .arg(&destination)
             .arg(screenshots_dir.join("screenshots/"))
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
