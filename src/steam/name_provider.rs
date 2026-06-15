@@ -4,23 +4,20 @@ use ureq::http::StatusCode;
 
 use crate::result::{CrateError, CrateResult};
 
+#[derive(Default)]
 pub struct GameNameGetter {}
 
 impl GameNameGetter {
     const STEAM_STORE_API_URL: &str = "https://store.steampowered.com/api/appdetails";
 
     pub fn new() -> Self {
-        GameNameGetter {}
+        Self::default()
     }
 
     /// Gets the game name using the Steam webstore API.
     #[instrument(skip(self), ret(level = "DEBUG"), err(level = "DEBUG"))]
     pub fn game_id_to_name(&self, game_id: &str) -> CrateResult<Option<String>> {
-        let url = format!(
-            "{}?appids={}",
-            Self::STEAM_STORE_API_URL,
-            game_id.to_string()
-        );
+        let url = format!("{}?appids={game_id}", Self::STEAM_STORE_API_URL,);
 
         debug!("Calling '{url}'.");
 

@@ -71,7 +71,7 @@ impl App {
 
         info!("Retrieved name. Uploading screenshots.");
 
-        self.u2c.upload(&screenshots_dir, &game_name)?;
+        self.u2c.upload(screenshots_dir, &game_name)?;
 
         info!("Screenshots for '{game_name}' uploaded.");
         Ok(())
