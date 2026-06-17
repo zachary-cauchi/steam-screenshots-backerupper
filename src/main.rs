@@ -1,12 +1,7 @@
-pub mod app;
-pub mod result;
-pub mod steam;
-pub mod u2c;
-
 use clap::Parser;
 use tracing::{debug, error};
 
-use crate::app::App;
+use steam_screenshots_backerupper::app::App;
 
 #[derive(Parser, Debug)]
 #[clap(author = "Zachary Cauchi", version, about)]

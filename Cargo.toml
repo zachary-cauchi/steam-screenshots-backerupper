@@ -6,6 +6,13 @@ name = "steam-screenshots-backerupper"
 description = "Back up my Steam recordings and screenshots to a NAS"
 version = "0.1.0"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "steam-screenshots-backerupper"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.3.14", features = ["derive"] }
 serde = "1.0.228"
